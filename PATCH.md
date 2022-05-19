@@ -16,3 +16,10 @@ ZMQ multipart message structure
 Before: | topic | payload | sequence |
 After:  | topic | timestamp | payload_0 | payload_1 | ... | payload_n | sequence |
 ```
+
+### change: increase default ZMQ high water mark
+
+The previous default of 1_000 did (correctly) drop messages when publishing
+many ZMQ messages at the same time. The default high water mark is increased to
+100_000.
+
