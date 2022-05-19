@@ -208,6 +208,15 @@ void CMainSignals::TransactionAddedToMempool(const CTransactionRef& tx, uint64_t
                           tx->GetWitnessHash().ToString());
 }
 
+void CMainSignals::TransactionAddedToMempoolFee(const CTransactionRef& tx, const CAmount fee) {
+    auto event = [tx, fee, this] {
+        m_internals->Iterate([&](CValidationInterface& callbacks) { callbacks.TransactionAddedToMempoolFee(tx, fee); });
+    };
+    ENQUEUE_AND_LOG_EVENT(event, "%s: txid=%s wtxid=%s", __func__,
+                          tx->GetHash().ToString(),
+                          tx->GetWitnessHash().ToString());
+}
+
 void CMainSignals::TransactionRemovedFromMempool(const CTransactionRef& tx, MemPoolRemovalReason reason, uint64_t mempool_sequence) {
     auto event = [tx, reason, mempool_sequence, this] {
         m_internals->Iterate([&](CValidationInterface& callbacks) { callbacks.TransactionRemovedFromMempool(tx, reason, mempool_sequence); });

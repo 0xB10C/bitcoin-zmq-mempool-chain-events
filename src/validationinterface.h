@@ -98,6 +98,12 @@ protected:
      * Called on a background thread.
      */
     virtual void TransactionAddedToMempool(const CTransactionRef& tx, uint64_t mempool_sequence) {}
+    /**
+     * Notifies listeners of a transaction having been added to mempool. Includes the transaction fee.
+     *
+     * Called on a background thread.
+     */
+    virtual void TransactionAddedToMempoolFee(const CTransactionRef& tx, const CAmount fee) {}
 
     /**
      * Notifies listeners of a transaction leaving mempool.
@@ -199,6 +205,7 @@ public:
 
     void UpdatedBlockTip(const CBlockIndex *, const CBlockIndex *, bool fInitialDownload);
     void TransactionAddedToMempool(const CTransactionRef&, uint64_t mempool_sequence);
+    void TransactionAddedToMempoolFee(const CTransactionRef&, const CAmount fee);
     void TransactionRemovedFromMempool(const CTransactionRef&, MemPoolRemovalReason, uint64_t mempool_sequence);
     void BlockConnected(const std::shared_ptr<const CBlock> &, const CBlockIndex *pindex);
     void BlockDisconnected(const std::shared_ptr<const CBlock> &, const CBlockIndex* pindex);
