@@ -90,6 +90,66 @@ static bool IsZMQAddressIPV6(const std::string &zmq_address)
     return false;
 }
 
+static int zmq_send_multipart(void *sock, const zmq_message& message)
+{
+    for (size_t i = 0; i < message.size(); i++) {
+        auto const& part = message[i];
+        zmq_msg_t msg;
+
+        int rc = zmq_msg_init_size(&msg, part.size());
+        if (rc != 0) {
+            zmqError("Unable to initialize ZMQ msg");
+            return -1;
+        }
+
+        void* buf = zmq_msg_data(&msg);
+        std::memcpy(buf, part.data(), part.size());
+
+        rc = zmq_msg_send(&msg, sock, (i < (message.size() - 1)) ? ZMQ_SNDMORE : 0);
+        if (rc == -1) {
+            zmqError("Unable to send ZMQ msg");
+            zmq_msg_close(&msg);
+            return -1;
+        }
+
+        zmq_msg_close(&msg);
+    }
+
+    LogPrint(BCLog::ZMQ, "sent message with %d parts\n", message.size());
+    return 0;
+}
+
+// converts an uint256 hash into a zmq_message_part (hash is reversed)
+static zmq_message_part hashToZMQMessagePart(const uint256 hash) {
+    zmq_message_part part_hash;
+    for (int i = 31; i >= 0; i--)
+        part_hash.push_back((std::byte)hash.begin()[i]);
+    return part_hash;
+}
+
+// converts a CTransaction into a zmq_message_part (by serializing it)
+static zmq_message_part transactionToZMQMessagePart(const CTransaction& transaction) {
+    zmq_message_part part_transaction;
+    CDataStream ss_transaction(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
+    ss_transaction << transaction;
+    part_transaction.assign(ss_transaction.begin(), ss_transaction.end());
+    return part_transaction;
+}
+
+// converts an int64_t into a zmq_message_part
+static zmq_message_part int64ToZMQMessagePart(const int64_t value) {
+    zmq_message_part part;
+    for (size_t i = 0; i < sizeof(int64_t); i++) {
+      part.push_back((std::byte) (value >> i*8));
+    }
+    return part;
+}
+
+// returns the current time in milliseconds as zmq_message_part
+static zmq_message_part getCurrentTimeMillis() {
+    return zmq_message_part(int64ToZMQMessagePart(GetTimeMillis()));
+}
+
 bool CZMQAbstractPublishNotifier::Initialize(void *pcontext)
 {
     assert(!psocket);
@@ -200,6 +260,33 @@ bool CZMQAbstractPublishNotifier::SendZmqMessage(const char *command, const void
         return false;
 
     /* increment memory only sequence number after sending */
+    nSequence++;
+
+    return true;
+}
+
+bool CZMQAbstractPublishNotifier::SendZmqMessage(const char *command, const std::vector<zmq_message_part>& payload)
+{
+    assert(psocket);
+
+    std::string commandStr(command);
+    zmq_message_part part_command(strlen(command));
+    std::transform(commandStr.begin(), commandStr.end(), part_command.begin(), [] (char c) { return std::byte(c); });
+    zmq_message_part part_sequence = int32ToZMQMessagePart(nSequence);
+
+    zmq_message message = {};
+    message.push_back(part_command);
+    message.push_back(getCurrentTimeMillis());
+    for (size_t i = 0; i < payload.size(); i++) {
+        message.push_back(payload[i]);
+    }
+    message.push_back(part_sequence);
+
+    int rc = zmq_send_multipart(psocket, message);
+    if (rc == -1)
+        return false;
+
+    // increment memory only sequence number after sending
     nSequence++;
 
     return true;
