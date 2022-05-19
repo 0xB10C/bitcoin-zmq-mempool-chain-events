@@ -38,6 +38,8 @@ CZMQNotificationInterface* CZMQNotificationInterface::Create()
     factories["pubrawtx"] = CZMQAbstractNotifier::Create<CZMQPublishRawTransactionNotifier>;
     factories["pubsequence"] = CZMQAbstractNotifier::Create<CZMQPublishSequenceNotifier>;
 
+    factories["pubmempooladded"] = CZMQAbstractNotifier::Create<CZMQPublishMempolAddedNotifier>;
+
     std::list<std::unique_ptr<CZMQAbstractNotifier>> notifiers;
     for (const auto& entry : factories)
     {
@@ -145,6 +147,15 @@ void CZMQNotificationInterface::TransactionAddedToMempool(const CTransactionRef&
 
     TryForEachAndRemoveFailed(notifiers, [&tx, mempool_sequence](CZMQAbstractNotifier* notifier) {
         return notifier->NotifyTransaction(tx) && notifier->NotifyTransactionAcceptance(tx, mempool_sequence);
+    });
+}
+
+void CZMQNotificationInterface::TransactionAddedToMempoolFee(const CTransactionRef& ptx, const CAmount fee)
+{
+    const CTransaction& tx = *ptx;
+
+    TryForEachAndRemoveFailed(notifiers, [&tx, fee](CZMQAbstractNotifier* notifier) {
+        return notifier->NotifyTransactionFee(tx, fee);
     });
 }
 
