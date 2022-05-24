@@ -13,6 +13,7 @@ class CBlockIndex;
 class CTransaction;
 class CZMQAbstractNotifier;
 typedef int64_t CAmount;
+enum class MemPoolRemovalReason;
 
 using CZMQNotifierFactory = std::unique_ptr<CZMQAbstractNotifier> (*)();
 
@@ -54,6 +55,8 @@ public:
     virtual bool NotifyTransactionAcceptance(const CTransaction &transaction, uint64_t mempool_sequence);
     // Notifies of every mempool removal, except inclusion in blocks
     virtual bool NotifyTransactionRemoval(const CTransaction &transaction, uint64_t mempool_sequence);
+    // Notifies of every mempool removal, including inclusion in blocks. Includes the removal reason.
+    virtual bool NotifyTransactionRemovalReason(const CTransaction &transaction, const MemPoolRemovalReason reason);
     // Notifies of transactions added to mempool or appearing in blocks
     virtual bool NotifyTransaction(const CTransaction &transaction);
     // Notifies of transactions added to mempool (only!) with the transaction fee.
