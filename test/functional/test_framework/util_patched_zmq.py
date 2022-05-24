@@ -7,7 +7,17 @@ from io import BytesIO
 
 import zmq
 
+from test_framework.messages import COutPoint, CTransaction
 from test_framework.util import assert_equal
+
+removalReason = {
+    'EXPIRY': 0,
+    'SIZELIMIT': 1,
+    'REORG': 2,
+    'BLOCK': 3,
+    'CONFLICT': 4,
+    'REPLACED': 5,
+}
 
 
 class ZMQSubscriber:
@@ -43,3 +53,46 @@ class ZMQSubscriber:
         assert_equal(struct.unpack('<I', sequence)[-1], self.sequence)
         self.sequence += 1
         return msg[2:-1]
+
+    def receive_mempoolremoved_message(self):
+        """Retrieves a two-payload ZMQ message from the topic mempoolremoved
+        containing the rawtransaction and the removal reason and returns the txid
+        and the removal reason"""
+        assert_equal(self.topic, b'mempoolremoved')
+
+        # Should receive a payload with three elements (txid, rawtx, removal reason)
+        payload = self.receive_multi_payload()
+        assert_equal(3, len(payload))
+
+        # First payload element should be the txid
+        r_txid = payload[0]
+
+        # Second payload element should be the raw transaction
+        r_rawtx = payload[1]
+        tx = CTransaction()
+        tx.deserialize(BytesIO(r_rawtx))
+        tx.calc_sha256()
+        assert_equal(r_txid.hex(), tx.hash)
+
+        # Second payload element should be the removal reason
+        reason = struct.unpack('<i', payload[2])[-1]
+
+        return [tx.hash, reason]
+
+    def discard_mempoolremoved_message_block(self):
+        """Retrieves one ZMQ message from the subscriber and checks that
+        it's a transaction removed from the mempool because it confirmed in a
+        block and discards it."""
+
+        assert_equal(self.topic, b'mempoolremoved')
+        _, reason = self.receive_mempoolremoved_message()
+        assert_equal(removalReason["BLOCK"], reason)
+
+    def check_mempoolremoved_messages(self, expected):
+        """checks that the in 'expected' defined txid-reason tuples arrive"""
+        for _ in range(len(expected)):
+            txhash, reason = self.receive_mempoolremoved_message()
+            assert_equal(True, txhash in expected)
+            assert_equal(removalReason[expected[txhash]], reason)
+            del expected[txhash]
+        assert_equal(0, len(expected))

@@ -71,6 +71,12 @@ public:
     bool NotifyTransactionFee(const CTransaction &transaction, const CAmount fee) override;
 };
 
+class CZMQPublishMempoolRemovedNotifier : public CZMQAbstractPublishNotifier
+{
+public:
+    bool NotifyTransactionRemovalReason(const CTransaction &transaction, const MemPoolRemovalReason reason) override;
+};
+
 class CZMQPublishSequenceNotifier : public CZMQAbstractPublishNotifier
 {
 public:

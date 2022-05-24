@@ -31,6 +31,7 @@ static const char *MSG_RAWTX     = "rawtx";
 static const char *MSG_SEQUENCE  = "sequence";
 
 static const char *MSG_MEMPOOLADDED = "mempooladded";
+static const char *MSG_MEMPOOLREMOVED = "mempoolremoved";
 
 // Internal function to send multipart message
 static int zmq_send_multipart(void *sock, const void* data, size_t size, ...)
@@ -370,4 +371,20 @@ bool CZMQPublishMempolAddedNotifier::NotifyTransactionFee(const CTransaction &tr
     payload.push_back(int64ToZMQMessagePart(fee));
 
     return SendZmqMessage(MSG_MEMPOOLADDED, payload);
+}
+
+bool CZMQPublishMempoolRemovedNotifier::NotifyTransactionRemovalReason(const CTransaction &transaction, const MemPoolRemovalReason reason)
+{
+    uint256 txid = transaction.GetHash();
+    LogPrint(BCLog::ZMQ, "zmq: Publish mempoolremoved %s\n", txid.GetHex());
+
+    unsigned char value[sizeof(reason)];
+    std::memcpy(value, &reason, sizeof(value));
+
+    std::vector<zmq_message_part> payload = {};
+    payload.push_back(hashToZMQMessagePart(txid));
+    payload.push_back(transactionToZMQMessagePart(transaction));
+    payload.push_back(zmq_message_part(value, value + sizeof(value)));
+
+    return SendZmqMessage(MSG_MEMPOOLREMOVED, payload);
 }

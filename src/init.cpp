@@ -489,6 +489,8 @@ void SetupServerArgs(ArgsManager& argsman)
 
     argsman.AddArg("-zmqpubmempooladded=<address>", "Enable publish raw transaction with fee in <address>", ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
     argsman.AddArg("-zmqpubmempooladdedhwm=<n>", strprintf("Set publish raw transaction with fee outbound message high water mark (default: %d)", CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM), ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
+    argsman.AddArg("-zmqpubmempoolremoved=<address>", "Enable publish removed raw transaction with reason in <address>", ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
+    argsman.AddArg("-zmqpubmempoolremovedhwm=<n>", strprintf("Set publish removed raw transaction with reason outbound message high water mark (default: %d)", CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM), ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
 #else
     hidden_args.emplace_back("-zmqpubhashblock=<address>");
     hidden_args.emplace_back("-zmqpubhashtx=<address>");
@@ -503,6 +505,8 @@ void SetupServerArgs(ArgsManager& argsman)
 
     hidden_args.emplace_back("-zmqpubmempooladded=<address>");
     hidden_args.emplace_back("-zmqpubmempooladdedhwm=<n>");
+    hidden_args.emplace_back("-zmqpubmempoolremoved=<address>");
+    hidden_args.emplace_back("-zmqpubmempoolremovedhwm=<address>");
 #endif
 
     argsman.AddArg("-checkblocks=<n>", strprintf("How many blocks to check at startup (default: %u, 0 = all)", DEFAULT_CHECKBLOCKS), ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY, OptionsCategory::DEBUG_TEST);
