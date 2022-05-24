@@ -47,3 +47,8 @@ bool CZMQAbstractNotifier::NotifyTransactionRemoval(const CTransaction &/*transa
 {
     return true;
 }
+
+bool CZMQAbstractNotifier::NotifyTransactionRemovalReason(const CTransaction &/*transaction*/, const MemPoolRemovalReason reason)
+{
+    return true;
+}

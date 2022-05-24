@@ -39,6 +39,7 @@ CZMQNotificationInterface* CZMQNotificationInterface::Create()
     factories["pubsequence"] = CZMQAbstractNotifier::Create<CZMQPublishSequenceNotifier>;
 
     factories["pubmempooladded"] = CZMQAbstractNotifier::Create<CZMQPublishMempolAddedNotifier>;
+    factories["pubmempoolremoved"] = CZMQAbstractNotifier::Create<CZMQPublishMempoolRemovedNotifier>;
 
     std::list<std::unique_ptr<CZMQAbstractNotifier>> notifiers;
     for (const auto& entry : factories)
@@ -167,6 +168,10 @@ void CZMQNotificationInterface::TransactionRemovedFromMempool(const CTransaction
     TryForEachAndRemoveFailed(notifiers, [&tx, mempool_sequence](CZMQAbstractNotifier* notifier) {
         return notifier->NotifyTransactionRemoval(tx, mempool_sequence);
     });
+
+    TryForEachAndRemoveFailed(notifiers, [&tx, reason](CZMQAbstractNotifier* notifier) {
+        return notifier->NotifyTransactionRemovalReason(tx, reason);
+    });
 }
 
 void CZMQNotificationInterface::BlockConnected(const std::shared_ptr<const CBlock>& pblock, const CBlockIndex* pindexConnected)
@@ -175,6 +180,12 @@ void CZMQNotificationInterface::BlockConnected(const std::shared_ptr<const CBloc
         const CTransaction& tx = *ptx;
         TryForEachAndRemoveFailed(notifiers, [&tx](CZMQAbstractNotifier* notifier) {
             return notifier->NotifyTransaction(tx);
+        });
+
+        // do not notify on coinbase tx
+        if (tx.IsCoinBase()) continue;
+        TryForEachAndRemoveFailed(notifiers, [&tx](CZMQAbstractNotifier* notifier) {
+          return notifier->NotifyTransactionRemovalReason(tx, MemPoolRemovalReason::BLOCK);
         });
     }
 
