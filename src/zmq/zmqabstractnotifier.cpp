@@ -67,3 +67,8 @@ bool CZMQAbstractNotifier::NotifyChainTipChanged(const CBlockIndex *)
 {
     return true;
 }
+
+bool CZMQAbstractNotifier::NotifyChainBlockConnected(const CBlockIndex *)
+{
+    return true;
+}

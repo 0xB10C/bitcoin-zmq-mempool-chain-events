@@ -67,7 +67,8 @@ public:
     virtual bool NotifyMempoolTransactionConfirmed(const CTransaction &transaction, const CBlockIndex *pindex);
     // Notifies of changed chain tips.
     virtual bool NotifyChainTipChanged(const CBlockIndex *pindex);
-
+    // Notifies of a block connection to the chain.
+    virtual bool NotifyChainBlockConnected(const CBlockIndex *pindex);
 protected:
     void *psocket;
     std::string type;
