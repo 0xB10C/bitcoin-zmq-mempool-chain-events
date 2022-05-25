@@ -195,6 +195,7 @@ BASE_SCRIPTS = [
     'interface_zmq_mempoolremove_reorg.py',
     'interface_zmq_mempoolremove_replaced.py',
     'interface_zmq_mempoolremove_sizelimit.py',
+    'interface_zmq_mempoolreplace.py',
     'wallet_keypool.py --legacy-wallet',
     'wallet_keypool.py --descriptors',
     'wallet_descriptor.py --descriptors',

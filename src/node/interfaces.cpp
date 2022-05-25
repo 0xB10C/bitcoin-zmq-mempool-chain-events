@@ -355,6 +355,10 @@ public:
     {
         m_notifications->transactionRemovedFromMempool(tx, reason, mempool_sequence);
     }
+    void TransactionReplacedInMempool(const CTransactionRef& tx_replaced, const CAmount fee_replaced, const CTransactionRef& tx_replacement, const CAmount fee_replacement) override
+    {
+        m_notifications->transactionReplacedInMempool(tx_replaced, fee_replaced, tx_replacement, fee_replacement);
+    }
     void BlockConnected(const std::shared_ptr<const CBlock>& block, const CBlockIndex* index) override
     {
         m_notifications->blockConnected(*block, index->nHeight);

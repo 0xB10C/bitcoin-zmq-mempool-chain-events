@@ -226,6 +226,15 @@ void CMainSignals::TransactionRemovedFromMempool(const CTransactionRef& tx, MemP
                           tx->GetWitnessHash().ToString());
 }
 
+void CMainSignals::TransactionReplacedInMempool(const CTransactionRef& tx_replaced, const CAmount fee_replaced, const CTransactionRef& tx_replacement, const CAmount fee_replacement) {
+    auto event = [tx_replaced, fee_replaced, tx_replacement, fee_replacement, this] {
+        m_internals->Iterate([&](CValidationInterface& callbacks) { callbacks.TransactionReplacedInMempool(tx_replaced, fee_replaced, tx_replacement, fee_replacement); });
+    };
+    ENQUEUE_AND_LOG_EVENT(event, "%s: txid_replaced=%s txid_replacement=%s", __func__,
+                          tx_replaced->GetHash().ToString(),
+                          tx_replacement->GetHash().ToString());
+}
+
 void CMainSignals::BlockConnected(const std::shared_ptr<const CBlock> &pblock, const CBlockIndex *pindex) {
     auto event = [pblock, pindex, this] {
         m_internals->Iterate([&](CValidationInterface& callbacks) { callbacks.BlockConnected(pblock, pindex); });

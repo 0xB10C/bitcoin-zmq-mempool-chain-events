@@ -995,6 +995,7 @@ bool MemPoolAccept::Finalize(const ATMPArgs& args, Workspace& ws)
                 hash.ToString(),
                 FormatMoney(nModifiedFees - nConflictingFees),
                 (int)entry->GetTxSize() - (int)nConflictingSize);
+        GetMainSignals().TransactionReplacedInMempool(it->GetSharedTx(), nConflictingFees, ws.m_ptx, nModifiedFees);
         ws.m_replaced_transactions.push_back(it->GetSharedTx());
     }
     m_pool.RemoveStaged(allConflicting, false, MemPoolRemovalReason::REPLACED);

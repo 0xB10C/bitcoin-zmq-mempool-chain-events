@@ -80,3 +80,30 @@ ZMQ multipart message structure
 - `removal reason` is an `int` in Little Endian
 - `sequence` is an `uint32` in Little Endian
 
+#### Mempool-replaced event with both transactions
+
+A new ZMQ publisher with the topic `mempoolreplaced` is added. The command-line
+option `-zmqpubmempoolreplaced=<address>` sets the address for the publisher and
+`-zmqpubmempoolreplacedhwm=<n>` sets a custom outbound message high water mark.
+The publisher notifies when a transaction in the mempool is replaced. This
+includes both the transaction id and raw transaction of the replaced and the
+replacement transaction as well as their fees.
+
+The functional tests for this ZMQ publisher can be run with `python3
+test/functional/test_runner.py interface_zmq_mempoolreplace.py`.
+
+```
+ZMQ multipart message structure
+| topic | timestamp | txid replaced | rawtx replaced | fee replaced | txid replacement | rawtx replacement | fee replacement | sequence |
+```
+
+- `topic` equals `mempoolreplaced`
+- `timestamp` are the milliseconds since 01/01/1970 as int64 in Little Endian
+- `txid replaced` is the txid of the replaced transaction
+- `rawtx replaced` is the serialized Bitcoin transaction that is replaced
+- `fee replaced` is the fee of the replaced transaction as a `int64_t` in Little Endian
+- `txid replacement` is the txid of the replacement transaction
+- `rawtx replacement` is the serialized Bitcoin transaction that is the replacement
+- `fee replacement` is the fee of the replacement transaction as a `int64_t` in Little Endian
+- `sequence` is an `uint32` in Little Endian
+
