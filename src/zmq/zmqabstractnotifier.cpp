@@ -52,3 +52,8 @@ bool CZMQAbstractNotifier::NotifyTransactionRemovalReason(const CTransaction &/*
 {
     return true;
 }
+
+bool CZMQAbstractNotifier::NotifyTransactionReplaced(const CTransaction &/* replaced tx */, const CAmount/*replaced fee*/, const CTransaction&/*replacement tx*/, const CAmount/*replacement fee*/)
+{
+    return true;
+}

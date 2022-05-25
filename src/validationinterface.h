@@ -104,7 +104,12 @@ protected:
      * Called on a background thread.
      */
     virtual void TransactionAddedToMempoolFee(const CTransactionRef& tx, const CAmount fee) {}
-
+    /**
+     * Notifies listeners of a transaction having been replaced in the mempool. Includes the transaction fees.
+     *
+     * Called on a background thread.
+     */
+    virtual void TransactionReplacedInMempool(const CTransactionRef& tx_replaced, const CAmount fee_replaced, const CTransactionRef& tx_replacement, const CAmount fee_replacement) {}
     /**
      * Notifies listeners of a transaction leaving mempool.
      *
@@ -207,6 +212,7 @@ public:
     void TransactionAddedToMempool(const CTransactionRef&, uint64_t mempool_sequence);
     void TransactionAddedToMempoolFee(const CTransactionRef&, const CAmount fee);
     void TransactionRemovedFromMempool(const CTransactionRef&, MemPoolRemovalReason, uint64_t mempool_sequence);
+    void TransactionReplacedInMempool(const CTransactionRef&, const CAmount, const CTransactionRef&, const CAmount);
     void BlockConnected(const std::shared_ptr<const CBlock> &, const CBlockIndex *pindex);
     void BlockDisconnected(const std::shared_ptr<const CBlock> &, const CBlockIndex* pindex);
     void ChainStateFlushed(const CBlockLocator &);

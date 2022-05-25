@@ -35,6 +35,7 @@ static const char *MSG_SEQUENCE  = "sequence";
 
 static const char *MSG_MEMPOOLADDED = "mempooladded";
 static const char *MSG_MEMPOOLREMOVED = "mempoolremoved";
+static const char *MSG_MEMPOOLREPLACED = "mempoolreplaced";
 
 // Internal function to send multipart message
 static int zmq_send_multipart(void *sock, const void* data, size_t size, ...)
@@ -413,3 +414,21 @@ bool CZMQPublishMempoolRemovedNotifier::NotifyTransactionRemovalReason(const CTr
 
     return SendZmqMessage(MSG_MEMPOOLREMOVED, payload);
 }
+
+bool CZMQPublishMempoolReplacedNotifier::NotifyTransactionReplaced(const CTransaction &tx_replaced, const CAmount fee_replaced, const CTransaction &tx_replacement, const CAmount fee_replacement)
+{
+    uint256 hash_replaced = tx_replaced.GetHash();
+    uint256 hash_replacement = tx_replacement.GetHash();
+    LogPrint(BCLog::ZMQ, "zmq: Publish mempoolreplaced %s by %s\n", hash_replaced.GetHex(), hash_replacement.GetHex());
+
+    std::vector<zmq_message_part> payload = {};
+    payload.push_back(hashToZMQMessagePart(hash_replaced));
+    payload.push_back(transactionToZMQMessagePart(tx_replaced));
+    payload.push_back(int64ToZMQMessagePart(fee_replaced));
+    payload.push_back(hashToZMQMessagePart(hash_replacement));
+    payload.push_back(transactionToZMQMessagePart(tx_replacement));
+    payload.push_back(int64ToZMQMessagePart(fee_replacement));
+
+    return SendZmqMessage(MSG_MEMPOOLREPLACED, payload);
+}
+
