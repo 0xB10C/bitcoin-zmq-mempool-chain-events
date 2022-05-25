@@ -35,6 +35,7 @@ static const char *MSG_MEMPOOLREMOVED = "mempoolremoved";
 static const char *MSG_MEMPOOLREPLACED = "mempoolreplaced";
 static const char *MSG_MEMPOOLCONFIRMED = "mempoolconfirmed";
 static const char *MSG_CHAINTIPCHANGED = "chaintipchanged";
+static const char *MSG_CHAINCONNECTED = "chainconnected";
 
 // Internal function to send multipart message
 static int zmq_send_multipart(void *sock, const void* data, size_t size, ...)
@@ -450,4 +451,31 @@ bool CZMQPublishChainTipChangedNotifier::NotifyChainTipChanged(const CBlockIndex
     payload.push_back(headerToZMQMessagePart(pindex->GetBlockHeader()));
 
     return SendZmqMessage(MSG_CHAINTIPCHANGED, payload);
+}
+
+bool CZMQPublishChainConnectedNotifier::NotifyChainBlockConnected(const CBlockIndex *pindex)
+{
+    uint256 hash = pindex->GetBlockHash();
+    LogPrint(BCLog::ZMQ, "zmq: Publish chainconnected %s\n", hash.GetHex());
+
+    const Consensus::Params& consensusParams = Params().GetConsensus();
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
+    {
+        LOCK(cs_main);
+        CBlock block;
+        if(!ReadBlockFromDisk(block, pindex, consensusParams))
+        {
+            zmqError("Can't read block from disk");
+            return false;
+        }
+        ss << block;
+    }
+
+    std::vector<zmq_message_part> payload = {};
+    payload.push_back(hashToZMQMessagePart(hash));
+    payload.push_back(int32ToZMQMessagePart(pindex->nHeight));
+    payload.push_back(hashToZMQMessagePart(pindex->GetBlockHeader().hashPrevBlock));
+    payload.push_back(zmq_message_part(ss.begin(), ss.end()));
+
+    return SendZmqMessage(MSG_CHAINCONNECTED, payload);
 }

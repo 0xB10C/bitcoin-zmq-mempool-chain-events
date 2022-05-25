@@ -95,6 +95,12 @@ public:
     bool NotifyChainTipChanged(const CBlockIndex *pindex) override;
 };
 
+class CZMQPublishChainConnectedNotifier : public CZMQAbstractPublishNotifier
+{
+public:
+    bool NotifyChainBlockConnected(const CBlockIndex *index) override;
+};
+
 class CZMQPublishSequenceNotifier : public CZMQAbstractPublishNotifier
 {
 public:
