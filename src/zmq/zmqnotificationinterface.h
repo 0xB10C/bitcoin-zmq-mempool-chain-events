@@ -34,6 +34,7 @@ protected:
 
     void TransactionAddedToMempoolFee(const CTransactionRef& tx, const CAmount fee) override;
     void TransactionReplacedInMempool(const CTransactionRef& tx_replaced, const CAmount fee_replaced, const CTransactionRef& tx_replacement, const CAmount fee_replacement) override;
+    void HeaderAddedToChain(const CBlockIndex *pindexHeader) override;
 private:
     CZMQNotificationInterface();
 

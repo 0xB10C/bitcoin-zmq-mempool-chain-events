@@ -2955,6 +2955,10 @@ CBlockIndex* BlockManager::AddToBlockIndex(const CBlockHeader& block)
 
     setDirtyBlockIndex.insert(pindexNew);
 
+    if (!fImporting && !fReindex) {
+        GetMainSignals().HeaderAddedToChain(pindexNew);
+    }
+
     return pindexNew;
 }
 

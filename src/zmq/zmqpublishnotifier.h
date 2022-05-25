@@ -101,6 +101,12 @@ public:
     bool NotifyChainBlockConnected(const CBlockIndex *index) override;
 };
 
+class CZMQPublishChainHeaderAddedNotifier : public CZMQAbstractPublishNotifier
+{
+public:
+    bool NotifyChainHeaderAdded(const CBlockIndex *pindexHeader) override;
+};
+
 class CZMQPublishSequenceNotifier : public CZMQAbstractPublishNotifier
 {
 public:
