@@ -61,6 +61,8 @@ public:
     virtual bool NotifyTransaction(const CTransaction &transaction);
     // Notifies of transactions added to mempool (only!) with the transaction fee.
     virtual bool NotifyTransactionFee(const CTransaction &transaction, const CAmount fee);
+    // Notifies of transactions replaced in the mempool.
+    virtual bool NotifyTransactionReplaced(const CTransaction &tx_replaced, const CAmount fee_replaced, const CTransaction &tx_replacement, const CAmount fee_replacement);
 
 protected:
     void *psocket;

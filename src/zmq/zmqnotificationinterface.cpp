@@ -40,6 +40,7 @@ CZMQNotificationInterface* CZMQNotificationInterface::Create()
 
     factories["pubmempooladded"] = CZMQAbstractNotifier::Create<CZMQPublishMempolAddedNotifier>;
     factories["pubmempoolremoved"] = CZMQAbstractNotifier::Create<CZMQPublishMempoolRemovedNotifier>;
+    factories["pubmempoolreplaced"] = CZMQAbstractNotifier::Create<CZMQPublishMempoolReplacedNotifier>;
 
     std::list<std::unique_ptr<CZMQAbstractNotifier>> notifiers;
     for (const auto& entry : factories)
@@ -171,6 +172,16 @@ void CZMQNotificationInterface::TransactionRemovedFromMempool(const CTransaction
 
     TryForEachAndRemoveFailed(notifiers, [&tx, reason](CZMQAbstractNotifier* notifier) {
         return notifier->NotifyTransactionRemovalReason(tx, reason);
+    });
+}
+
+void CZMQNotificationInterface::TransactionReplacedInMempool(const CTransactionRef& txref_replaced, const CAmount fee_replaced, const CTransactionRef& txref_replacement, const CAmount fee_replacement)
+{
+    const CTransaction& tx_replaced = *txref_replaced;
+    const CTransaction& tx_replacement = *txref_replacement;
+
+    TryForEachAndRemoveFailed(notifiers, [&tx_replaced, fee_replaced, &tx_replacement, fee_replacement](CZMQAbstractNotifier* notifier) {
+        return notifier->NotifyTransactionReplaced(tx_replaced, fee_replaced, tx_replacement, fee_replacement);
     });
 }
 
