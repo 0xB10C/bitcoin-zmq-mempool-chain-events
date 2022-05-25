@@ -158,3 +158,27 @@ ZMQ multipart message structure
 - `header` is the 80-byte serialized block header
 - `sequence` is an `uint32` in Little Endian
 
+#### Chain-connected event with raw block
+
+A new ZMQ publisher with the topic `chainconnected` is added. The command-line
+option `-zmqpubchainconnected=<address>` sets the address for the publisher and
+`-zmqpubchainconnectedhwm=<n>` sets a custom outbound message high water mark.
+The publisher notifies when a block is connected to a branch on a chain. Note:
+This block does not need to be the the most-work chain.
+
+The functional tests for this ZMQ publisher can be run with `python3
+test/functional/test_runner.py interface_zmq_chainblockconnected.py`.
+
+```
+ZMQ multipart message structure
+| topic | timestamp | hash | height | prev hash | rawblock | sequence |
+```
+
+- `topic` equals `chainconnected`
+- `timestamp` are the milliseconds since 01/01/1970 as int64 in Little Endian
+- `hash` is the block hash
+- `height` is the block height as `int32` in Little Endian
+- `prev hash` is the previous block hash
+- `block` is a serialized Bitcoin block
+- `sequence` is an `uint32` in Little Endian
+
