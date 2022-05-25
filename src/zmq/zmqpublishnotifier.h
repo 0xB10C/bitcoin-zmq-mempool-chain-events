@@ -70,6 +70,12 @@ public:
     bool NotifyTransactionReplaced(const CTransaction &tx_replaced, const CAmount fee_replaced, const CTransaction &tx_replacement, const CAmount fee_replacement) override;
 };
 
+class CZMQPublishMempoolConfirmedNotifier : public CZMQAbstractPublishNotifier
+{
+public:
+    bool NotifyMempoolTransactionConfirmed(const CTransaction &transaction, const CBlockIndex *pindex) override;
+};
+
 class CZMQPublishSequenceNotifier : public CZMQAbstractPublishNotifier
 {
 public:

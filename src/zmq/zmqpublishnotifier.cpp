@@ -35,6 +35,7 @@ static const char *MSG_SEQUENCE  = "sequence";
 static const char *MSG_MEMPOOLADDED = "mempooladded";
 static const char *MSG_MEMPOOLREMOVED = "mempoolremoved";
 static const char *MSG_MEMPOOLREPLACED = "mempoolreplaced";
+static const char *MSG_MEMPOOLCONFIRMED = "mempoolconfirmed";
 
 // Internal function to send multipart message
 static int zmq_send_multipart(void *sock, const void* data, size_t size, ...)
@@ -91,6 +92,82 @@ static bool IsZMQAddressIPV6(const std::string &zmq_address)
         if (addr.IsIPv6()) return true;
     }
     return false;
+}
+
+static int zmq_send_multipart(void *sock, const zmq_message& message)
+{
+    for (size_t i = 0; i < message.size(); i++) {
+        auto const& part = message[i];
+        zmq_msg_t msg;
+
+        int rc = zmq_msg_init_size(&msg, part.size());
+        if (rc != 0) {
+            zmqError("Unable to initialize ZMQ msg");
+            return -1;
+        }
+
+        void* buf = zmq_msg_data(&msg);
+        std::memcpy(buf, part.data(), part.size());
+
+        rc = zmq_msg_send(&msg, sock, (i < (message.size() - 1)) ? ZMQ_SNDMORE : 0);
+        if (rc == -1) {
+            zmqError("Unable to send ZMQ msg");
+            zmq_msg_close(&msg);
+            return -1;
+        }
+
+        zmq_msg_close(&msg);
+    }
+
+    LogPrint(BCLog::ZMQ, "sent message with %d parts\n", message.size());
+    return 0;
+}
+
+// converts an uint256 hash into a zmq_message_part (hash is reversed)
+static zmq_message_part hashToZMQMessagePart(const uint256 hash) {
+    zmq_message_part part_hash;
+    for (int i = 31; i >= 0; i--)
+        part_hash.push_back((std::byte)hash.begin()[i]);
+    return part_hash;
+}
+
+// converts a CTransaction into a zmq_message_part (by serializing it)
+static zmq_message_part transactionToZMQMessagePart(const CTransaction& transaction) {
+    zmq_message_part part_transaction;
+    CDataStream ss_transaction(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
+    ss_transaction << transaction;
+    part_transaction.assign(ss_transaction.begin(), ss_transaction.end());
+    return part_transaction;
+}
+
+// converts an int64_t into a zmq_message_part
+static zmq_message_part int64ToZMQMessagePart(const int64_t value) {
+    zmq_message_part part;
+    for (size_t i = 0; i < sizeof(int64_t); i++) {
+      part.push_back((std::byte) (value >> i*8));
+    }
+    return part;
+}
+
+// returns the current time in milliseconds as zmq_message_part
+static zmq_message_part getCurrentTimeMillis() {
+    return zmq_message_part(int64ToZMQMessagePart(GetTimeMillis()));
+}
+
+// converts a header into a zmq_message_part
+static zmq_message_part headerToZMQMessagePart(const CBlockHeader& header) {
+    CDataStream ss_header(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
+    ss_header << header;
+    return zmq_message_part(ss_header.begin() , ss_header.end());
+}
+
+// converts an int32_t into a zmq_message_part
+static zmq_message_part int32ToZMQMessagePart(const int32_t value) {
+    zmq_message_part part(0);
+    for (size_t i = 0; i < sizeof(int32_t); i++) {
+      part.push_back((std::byte) (value >> i*8));
+    }
+    return part;
 }
 
 bool CZMQAbstractPublishNotifier::Initialize(void *pcontext)
@@ -344,3 +421,17 @@ bool CZMQPublishMempoolReplacedNotifier::NotifyTransactionReplaced(const CTransa
     return SendZmqMessage(MSG_MEMPOOLREPLACED, payload);
 }
 
+bool CZMQPublishMempoolConfirmedNotifier::NotifyMempoolTransactionConfirmed(const CTransaction &transaction, const CBlockIndex *pindex)
+{
+    uint256 txid = transaction.GetHash();
+    LogPrint(BCLog::ZMQ, "zmq: Publish mempoolconfirmed %s\n", txid.GetHex());
+
+    std::vector<zmq_message_part> payload = {};
+    payload.push_back(hashToZMQMessagePart(txid));
+    payload.push_back(transactionToZMQMessagePart(transaction));
+    payload.push_back(int32ToZMQMessagePart(pindex->nHeight));
+    payload.push_back(hashToZMQMessagePart(pindex->GetBlockHash()));
+    payload.push_back(headerToZMQMessagePart(pindex->GetBlockHeader()));
+
+    return SendZmqMessage(MSG_MEMPOOLCONFIRMED, payload);
+}

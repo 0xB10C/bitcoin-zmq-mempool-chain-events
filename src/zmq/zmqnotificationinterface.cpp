@@ -41,6 +41,7 @@ CZMQNotificationInterface* CZMQNotificationInterface::Create()
     factories["pubmempooladded"] = CZMQAbstractNotifier::Create<CZMQPublishMempolAddedNotifier>;
     factories["pubmempoolremoved"] = CZMQAbstractNotifier::Create<CZMQPublishMempoolRemovedNotifier>;
     factories["pubmempoolreplaced"] = CZMQAbstractNotifier::Create<CZMQPublishMempoolReplacedNotifier>;
+    factories["pubmempoolconfirmed"] = CZMQAbstractNotifier::Create<CZMQPublishMempoolConfirmedNotifier>;
 
     std::list<std::unique_ptr<CZMQAbstractNotifier>> notifiers;
     for (const auto& entry : factories)
@@ -197,6 +198,9 @@ void CZMQNotificationInterface::BlockConnected(const std::shared_ptr<const CBloc
         if (tx.IsCoinBase()) continue;
         TryForEachAndRemoveFailed(notifiers, [&tx](CZMQAbstractNotifier* notifier) {
           return notifier->NotifyTransactionRemovalReason(tx, MemPoolRemovalReason::BLOCK);
+        });
+        TryForEachAndRemoveFailed(notifiers, [&tx, pindexConnected](CZMQAbstractNotifier* notifier) {
+          return notifier->NotifyMempoolTransactionConfirmed(tx, pindexConnected);
         });
     }
 

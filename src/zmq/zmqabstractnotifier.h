@@ -63,7 +63,8 @@ public:
     virtual bool NotifyTransactionFee(const CTransaction &transaction, const CAmount fee);
     // Notifies of transactions replaced in the mempool.
     virtual bool NotifyTransactionReplaced(const CTransaction &tx_replaced, const CAmount fee_replaced, const CTransaction &tx_replacement, const CAmount fee_replacement);
-
+    // Notifies of transactions confirmed with information about the block.
+    virtual bool NotifyMempoolTransactionConfirmed(const CTransaction &transaction, const CBlockIndex *pindex);
 protected:
     void *psocket;
     std::string type;
