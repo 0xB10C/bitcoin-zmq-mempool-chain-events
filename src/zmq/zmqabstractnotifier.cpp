@@ -57,3 +57,8 @@ bool CZMQAbstractNotifier::NotifyTransactionReplaced(const CTransaction &/* repl
 {
     return true;
 }
+
+bool CZMQAbstractNotifier::NotifyMempoolTransactionConfirmed(const CTransaction &/*transaction*/, const CBlockIndex *)
+{
+    return true;
+}
