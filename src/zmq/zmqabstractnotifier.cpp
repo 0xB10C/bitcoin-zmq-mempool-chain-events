@@ -62,3 +62,8 @@ bool CZMQAbstractNotifier::NotifyMempoolTransactionConfirmed(const CTransaction 
 {
     return true;
 }
+
+bool CZMQAbstractNotifier::NotifyChainTipChanged(const CBlockIndex *)
+{
+    return true;
+}

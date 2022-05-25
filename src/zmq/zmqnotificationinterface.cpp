@@ -42,6 +42,7 @@ CZMQNotificationInterface* CZMQNotificationInterface::Create()
     factories["pubmempoolremoved"] = CZMQAbstractNotifier::Create<CZMQPublishMempoolRemovedNotifier>;
     factories["pubmempoolreplaced"] = CZMQAbstractNotifier::Create<CZMQPublishMempoolReplacedNotifier>;
     factories["pubmempoolconfirmed"] = CZMQAbstractNotifier::Create<CZMQPublishMempoolConfirmedNotifier>;
+    factories["pubchaintipchanged"] = CZMQAbstractNotifier::Create<CZMQPublishChainTipChangedNotifier>;
 
     std::list<std::unique_ptr<CZMQAbstractNotifier>> notifiers;
     for (const auto& entry : factories)
@@ -141,6 +142,10 @@ void CZMQNotificationInterface::UpdatedBlockTip(const CBlockIndex *pindexNew, co
 
     TryForEachAndRemoveFailed(notifiers, [pindexNew](CZMQAbstractNotifier* notifier) {
         return notifier->NotifyBlock(pindexNew);
+    });
+
+    TryForEachAndRemoveFailed(notifiers, [pindexNew](CZMQAbstractNotifier* notifier) {
+        return notifier->NotifyChainTipChanged(pindexNew);
     });
 }
 

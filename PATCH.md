@@ -134,3 +134,27 @@ ZMQ multipart message structure
 - `header` is the 80-byte serialized block header
 - `sequence` is a `uint32` in Little Endian
 
+#### Chain-tipchanged event with height and header
+
+A new ZMQ publisher with the topic `chaintipchanged` is added. The command-line
+option `-zmqpubchaintipchanged=<address>` sets the address for the publisher and
+`-zmqpubchaintipchangedhwm=<n>` sets a custom outbound message high water mark.
+The publisher notifies when a block is connected to a branch on a chain. Note:
+This block does not need to be the the most-work chain.
+
+The functional tests for this ZMQ publisher can be run with `python3
+test/functional/test_runner.py interface_zmq_chaintipchanged.py`.
+
+#### Specification
+```
+ZMQ multipart message structure
+| topic | timestamp | hash | height | header | sequence |
+```
+
+- `topic` equals `chaintipchanged`
+- `timestamp` are the milliseconds since 01/01/1970 as int64 in Little Endian
+- `hash` is the block hash
+- `height` is the block height as `int32` in Little Endian
+- `header` is the 80-byte serialized block header
+- `sequence` is an `uint32` in Little Endian
+

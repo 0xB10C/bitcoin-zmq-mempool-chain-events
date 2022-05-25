@@ -89,6 +89,12 @@ public:
     bool NotifyMempoolTransactionConfirmed(const CTransaction &transaction, const CBlockIndex *pindex) override;
 };
 
+class CZMQPublishChainTipChangedNotifier : public CZMQAbstractPublishNotifier
+{
+public:
+    bool NotifyChainTipChanged(const CBlockIndex *pindex) override;
+};
+
 class CZMQPublishSequenceNotifier : public CZMQAbstractPublishNotifier
 {
 public:
