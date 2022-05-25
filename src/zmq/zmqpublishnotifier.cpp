@@ -36,6 +36,7 @@ static const char *MSG_SEQUENCE  = "sequence";
 static const char *MSG_MEMPOOLADDED = "mempooladded";
 static const char *MSG_MEMPOOLREMOVED = "mempoolremoved";
 static const char *MSG_MEMPOOLREPLACED = "mempoolreplaced";
+static const char *MSG_MEMPOOLCONFIRMED = "mempoolconfirmed";
 
 // Internal function to send multipart message
 static int zmq_send_multipart(void *sock, const void* data, size_t size, ...)
@@ -152,6 +153,22 @@ static zmq_message_part int64ToZMQMessagePart(const int64_t value) {
 // returns the current time in milliseconds as zmq_message_part
 static zmq_message_part getCurrentTimeMillis() {
     return zmq_message_part(int64ToZMQMessagePart(GetTimeMillis()));
+}
+
+// converts a header into a zmq_message_part
+static zmq_message_part headerToZMQMessagePart(const CBlockHeader& header) {
+    CDataStream ss_header(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
+    ss_header << header;
+    return zmq_message_part(ss_header.begin() , ss_header.end());
+}
+
+// converts an int32_t into a zmq_message_part
+static zmq_message_part int32ToZMQMessagePart(const int32_t value) {
+    zmq_message_part part(0);
+    for (size_t i = 0; i < sizeof(int32_t); i++) {
+      part.push_back((std::byte) (value >> i*8));
+    }
+    return part;
 }
 
 bool CZMQAbstractPublishNotifier::Initialize(void *pcontext)
@@ -432,3 +449,17 @@ bool CZMQPublishMempoolReplacedNotifier::NotifyTransactionReplaced(const CTransa
     return SendZmqMessage(MSG_MEMPOOLREPLACED, payload);
 }
 
+bool CZMQPublishMempoolConfirmedNotifier::NotifyMempoolTransactionConfirmed(const CTransaction &transaction, const CBlockIndex *pindex)
+{
+    uint256 txid = transaction.GetHash();
+    LogPrint(BCLog::ZMQ, "zmq: Publish mempoolconfirmed %s\n", txid.GetHex());
+
+    std::vector<zmq_message_part> payload = {};
+    payload.push_back(hashToZMQMessagePart(txid));
+    payload.push_back(transactionToZMQMessagePart(transaction));
+    payload.push_back(int32ToZMQMessagePart(pindex->nHeight));
+    payload.push_back(hashToZMQMessagePart(pindex->GetBlockHash()));
+    payload.push_back(headerToZMQMessagePart(pindex->GetBlockHeader()));
+
+    return SendZmqMessage(MSG_MEMPOOLCONFIRMED, payload);
+}

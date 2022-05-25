@@ -107,3 +107,30 @@ ZMQ multipart message structure
 - `fee replacement` is the fee of the replacement transaction as a `int64_t` in Little Endian
 - `sequence` is an `uint32` in Little Endian
 
+#### Mempool-confirmed event with block header and height
+
+A new ZMQ publisher with the topic `mempoolconfirmed` is added. The command line
+option `-zmqpubmempoolconfirmed=<address>` sets the address for the publisher
+and `-zmqpubmempoolconfirmedhwm=<n>` sets a custom outbound message high water
+mark. The publisher notifies when a transaction is included in a block and
+passes the txid, the raw transaction, the block height and the block hash.
+
+The functional tests for this ZMQ publisher can be run with `python3
+test/functional/test_runner.py
+test/functional/interface_zmq_mempoolconfirmed.py`. Make sure bitcoind is
+compiled with a wallet otherwise the tests are skipped.
+
+```
+ZMQ multipart message structure
+| topic | timestamp | txid | rawtx | block height | block hash | header | sequence |
+```
+
+- `topic` equals `mempoolconfirmed`
+- `timestamp` are the milliseconds since 01/01/1970 as int64 in Little Endian
+- `txid` is the transaction id
+- `rawtx` is a serialized Bitcoin transaction
+- `block height` is the block height as `int32` in Little Endian
+- `block hash` is the block hash
+- `header` is the 80-byte serialized block header
+- `sequence` is a `uint32` in Little Endian
+
