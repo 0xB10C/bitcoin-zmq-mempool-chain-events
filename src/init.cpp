@@ -495,6 +495,8 @@ void SetupServerArgs(ArgsManager& argsman)
     argsman.AddArg("-zmqpubmempoolreplacedhwm=<n>", strprintf("Set publish of replaced and replacement raw transaction with their fees outbound message high water mark (default: %d)", CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM), ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
     argsman.AddArg("-zmqpubmempoolconfirmed=<address>", "Enable publish of confirmed transactions with the height and block header in <address>", ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
     argsman.AddArg("-zmqpubmempoolconfirmedhwm=<n>", strprintf("Set outbound message high water mark for confirmed transactions (default: %d)", CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM), ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
+    argsman.AddArg("-zmqpubchaintipchanged=<address>", "Enable publish tip changed events in <address>", ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
+    argsman.AddArg("-zmqpubchaintipchangedhwm=<n>", strprintf("Set tip changed outbound message high water mark (default: %d)", CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM), ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
 #else
     hidden_args.emplace_back("-zmqpubhashblock=<address>");
     hidden_args.emplace_back("-zmqpubhashtx=<address>");
@@ -515,6 +517,8 @@ void SetupServerArgs(ArgsManager& argsman)
     hidden_args.emplace_back("-zmqpubmempoolreplacedhwm=<address>");
     hidden_args.emplace_back("-zmqpubmempoolconfirmed=<address>");
     hidden_args.emplace_back("-zmqpubmempoolconfirmedhwm=<n>");
+    hidden_args.emplace_back("-zmqpubchaintipchanged=<address>");
+    hidden_args.emplace_back("-zmqpubchaintipchangedhwm=<address>");
 #endif
 
     argsman.AddArg("-checkblocks=<n>", strprintf("How many blocks to check at startup (default: %u, 0 = all)", DEFAULT_CHECKBLOCKS), ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY, OptionsCategory::DEBUG_TEST);

@@ -34,6 +34,7 @@ static const char *MSG_MEMPOOLADDED = "mempooladded";
 static const char *MSG_MEMPOOLREMOVED = "mempoolremoved";
 static const char *MSG_MEMPOOLREPLACED = "mempoolreplaced";
 static const char *MSG_MEMPOOLCONFIRMED = "mempoolconfirmed";
+static const char *MSG_CHAINTIPCHANGED = "chaintipchanged";
 
 // Internal function to send multipart message
 static int zmq_send_multipart(void *sock, const void* data, size_t size, ...)
@@ -436,4 +437,17 @@ bool CZMQPublishMempoolConfirmedNotifier::NotifyMempoolTransactionConfirmed(cons
     payload.push_back(headerToZMQMessagePart(pindex->GetBlockHeader()));
 
     return SendZmqMessage(MSG_MEMPOOLCONFIRMED, payload);
+}
+
+bool CZMQPublishChainTipChangedNotifier::NotifyChainTipChanged(const CBlockIndex *pindex)
+{
+    uint256 hash = pindex->GetBlockHash();
+    LogPrint(BCLog::ZMQ, "zmq: Publish chaintipchanged %s\n", hash.GetHex());
+
+    std::vector<zmq_message_part> payload = {};
+    payload.push_back(hashToZMQMessagePart(hash));
+    payload.push_back(int32ToZMQMessagePart(pindex->nHeight));
+    payload.push_back(headerToZMQMessagePart(pindex->GetBlockHeader()));
+
+    return SendZmqMessage(MSG_CHAINTIPCHANGED, payload);
 }
