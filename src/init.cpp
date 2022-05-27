@@ -525,6 +525,8 @@ void SetupServerArgs(ArgsManager& argsman)
     argsman.AddArg("-zmqpubchaintipchangedhwm=<n>", strprintf("Set tip changed outbound message high water mark (default: %d)", CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM), ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
     argsman.AddArg("-zmqpubchainconnected=<address>", "Enable publish raw block connected in <address>", ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
     argsman.AddArg("-zmqpubchainconnectedhwm=<n>", strprintf("Set publish raw block connected outbound message high water mark (default: %d)", CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM), ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
+    argsman.AddArg("-zmqpubchainheaderadded=<address>", "Enable publish header added events in <address>", ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
+    argsman.AddArg("-zmqpubchainheaderaddedhwm=<n>", strprintf("Set header added outbound message high water mark (default: %d)", CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM), ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
 #else
     hidden_args.emplace_back("-zmqpubhashblock=<address>");
     hidden_args.emplace_back("-zmqpubhashtx=<address>");
@@ -549,6 +551,8 @@ void SetupServerArgs(ArgsManager& argsman)
     hidden_args.emplace_back("-zmqpubchaintipchangedhwm=<address>");
     hidden_args.emplace_back("-zmqpubchainconnected=<address>");
     hidden_args.emplace_back("-zmqpubchainconnectedhwm=<address>");
+    hidden_args.emplace_back("-zmqpubchainheaderadded=<address>");
+    hidden_args.emplace_back("-zmqpubchainheaderaddedhwm=<address>");
 #endif
 
     argsman.AddArg("-checkblocks=<n>", strprintf("How many blocks to check at startup (default: %u, 0 = all)", DEFAULT_CHECKBLOCKS), ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY, OptionsCategory::DEBUG_TEST);

@@ -206,6 +206,7 @@ BASE_SCRIPTS = [
     'interface_zmq_mempoolconfirmed.py',
     'interface_zmq_chaintipchanged.py',
     'interface_zmq_chainblockconnected.py',
+    'interface_zmq_chainheaderadded.py',
     'wallet_keypool.py --legacy-wallet',
     'wallet_keypool.py --descriptors',
     'wallet_descriptor.py --descriptors',

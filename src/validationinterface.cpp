@@ -235,6 +235,15 @@ void CMainSignals::TransactionReplacedInMempool(const CTransactionRef& tx_replac
                           tx_replacement->GetHash().ToString());
 }
 
+void CMainSignals::HeaderAddedToChain(const CBlockIndex *pindexHeader) {
+    auto event = [pindexHeader, this] {
+        m_internals->Iterate([&](CValidationInterface& callbacks) { callbacks.HeaderAddedToChain(pindexHeader); });
+    };
+    ENQUEUE_AND_LOG_EVENT(event, "%s: block hash=%s block height=%d", __func__,
+                        pindexHeader->GetBlockHash().ToString(),
+                        pindexHeader->nHeight);
+}
+
 void CMainSignals::BlockConnected(const std::shared_ptr<const CBlock> &pblock, const CBlockIndex *pindex) {
     auto event = [pblock, pindex, this] {
         m_internals->Iterate([&](CValidationInterface& callbacks) { callbacks.BlockConnected(pblock, pindex); });

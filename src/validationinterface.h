@@ -151,6 +151,12 @@ protected:
      */
     virtual void BlockConnected(const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex) {}
     /**
+     * Notifies listeners when a new header is added to one of the branches of the chain.
+     *
+     * Called on a background thread.
+     */
+    virtual void HeaderAddedToChain(const CBlockIndex *pindexHeader) {}
+    /**
      * Notifies listeners of a block being disconnected
      *
      * Called on a background thread.
@@ -214,6 +220,7 @@ public:
     void TransactionRemovedFromMempool(const CTransactionRef&, MemPoolRemovalReason, uint64_t mempool_sequence);
     void TransactionReplacedInMempool(const CTransactionRef&, const CAmount, const CTransactionRef&, const CAmount);
     void BlockConnected(const std::shared_ptr<const CBlock> &, const CBlockIndex *pindex);
+    void HeaderAddedToChain(const CBlockIndex *);
     void BlockDisconnected(const std::shared_ptr<const CBlock> &, const CBlockIndex* pindex);
     void ChainStateFlushed(const CBlockLocator &);
     void BlockChecked(const CBlock&, const BlockValidationState&);
