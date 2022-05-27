@@ -44,6 +44,7 @@ CZMQNotificationInterface* CZMQNotificationInterface::Create()
     factories["pubmempoolconfirmed"] = CZMQAbstractNotifier::Create<CZMQPublishMempoolConfirmedNotifier>;
     factories["pubchaintipchanged"] = CZMQAbstractNotifier::Create<CZMQPublishChainTipChangedNotifier>;
     factories["pubchainconnected"] = CZMQAbstractNotifier::Create<CZMQPublishChainConnectedNotifier>;
+    factories["pubchainheaderadded"] = CZMQAbstractNotifier::Create<CZMQPublishChainHeaderAddedNotifier>;
 
     std::list<std::unique_ptr<CZMQAbstractNotifier>> notifiers;
     for (const auto& entry : factories)
@@ -233,6 +234,13 @@ void CZMQNotificationInterface::BlockDisconnected(const std::shared_ptr<const CB
     // Next we notify BlockDisconnect listeners for *all* blocks
     TryForEachAndRemoveFailed(notifiers, [pindexDisconnected](CZMQAbstractNotifier* notifier) {
         return notifier->NotifyBlockDisconnect(pindexDisconnected);
+    });
+}
+
+void CZMQNotificationInterface::HeaderAddedToChain(const CBlockIndex *pindexHeader)
+{
+    TryForEachAndRemoveFailed(notifiers, [pindexHeader](CZMQAbstractNotifier* notifier) {
+        return notifier->NotifyChainHeaderAdded(pindexHeader);
     });
 }
 

@@ -69,6 +69,8 @@ public:
     virtual bool NotifyChainTipChanged(const CBlockIndex *pindex);
     // Notifies of a block connection to the chain.
     virtual bool NotifyChainBlockConnected(const CBlockIndex *pindex);
+    // Notifies of a header connection to the chian.
+    virtual bool NotifyChainHeaderAdded(const CBlockIndex *pindex);
 protected:
     void *psocket;
     std::string type;

@@ -3677,6 +3677,10 @@ bool ChainstateManager::AcceptBlockHeader(const CBlockHeader& block, BlockValida
     }
     CBlockIndex* pindex{m_blockman.AddToBlockIndex(block, m_best_header)};
 
+    if (!fImporting && !fReindex) {
+        GetMainSignals().HeaderAddedToChain(pindex);
+    }
+
     if (ppindex)
         *ppindex = pindex;
 
